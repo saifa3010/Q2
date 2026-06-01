@@ -13,4 +13,11 @@ namespace Domain.Enums
         Cancelled = 5
 
     }
+    public enum PaymentStatusId
+    {
+        Pending = 1,
+        Completed = 2,
+        Failed = 3,
+        Reversed = 4
+    }
 }

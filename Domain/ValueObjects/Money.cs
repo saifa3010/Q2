@@ -6,6 +6,7 @@ namespace Domain.ValueObjects
 {
     public class Money
     {
+        private Money() { } // EF
         public decimal Amount { get; }
 
         public Money(decimal amount)
@@ -32,5 +33,17 @@ namespace Domain.ValueObjects
 
         public override int GetHashCode()
             => Amount.GetHashCode();
+
+        public static Money Zero => new Money(0);
+
+        public static Money operator +(Money left, Money right)
+        {
+            return left.Add(right);
+        }
+
+        public static Money operator -(Money left, Money right)
+        {
+            return left.Subtract(right);
+        }
     }
 }
