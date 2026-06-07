@@ -1,48 +1,58 @@
+using Hangfire;
+using Infrastructure;
+using Infrastructure.Outbox;
 using Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// ── Controllers & OpenAPI ─────────────────────────────────────────────────
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ── Infrastructure (DbContext + Hangfire + Outbox interceptor) ────────────
+builder.Services.AddInfrastructure(builder.Configuration);
 
+// ── Authentication ────────────────────────────────────────────────────────
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
-{
-    options.Authority = "http://localhost:8080/realms/YourRealm";
-    options.Audience = "your-client-id";
-
-    options.RequireHttpsMetadata = false;
-
-    options.TokenValidationParameters = new TokenValidationParameters
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true
-    };
-});
+        options.Authority = builder.Configuration["Keycloak:Authority"];
+        options.Audience = builder.Configuration["Keycloak:Audience"];
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true
+        };
+    });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ── OpenAPI ───────────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// ── Hangfire dashboard ────────────────────────────────────────────────────
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    // TODO: replace with an auth filter before going to production
+    Authorization = []
+});
 
+// ── Recurring jobs ────────────────────────────────────────────────────────
+var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+jobManager.RegisterRecurringJobs();
+
+// ── Middleware pipeline ───────────────────────────────────────────────────
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

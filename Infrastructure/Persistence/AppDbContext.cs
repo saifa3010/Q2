@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ namespace Infrastructure.Persistence
         public DbSet<Lookup> Lookups { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<AppUser> Users { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }

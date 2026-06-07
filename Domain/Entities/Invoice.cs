@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+using Domain.Enums;
+using Domain.Events;
 using Domain.ValueObjects;
 
 namespace Domain.Entities
@@ -34,14 +35,23 @@ namespace Domain.Entities
             if (dueDate.Date < DateTime.UtcNow.Date)
                 throw new ArgumentException("Due date cannot be in the past.");
 
-            return new Invoice
+            var invoice = new Invoice
             {
+                Id = Guid.NewGuid(),
                 CustomerId = customerId,
                 DueDate = dueDate,
                 StatusId = InvoiceStatusId.Pending,
                 TotalAmount = new Money(0),
-                PaidAmount = new Money(0)
+                PaidAmount = new Money(0),
+                CreatedAt = DateTime.UtcNow
             };
+
+            invoice.AddDomainEvent(new InvoiceCreatedEvent(
+                invoice.Id,
+                invoice.CustomerId,
+                invoice.DueDate));
+
+            return invoice;
         }
 
         public void AddItem(string name, decimal price, int quantity)
@@ -57,6 +67,13 @@ namespace Domain.Entities
             _items.Add(item);
 
             RecalculateTotal();
+
+            AddDomainEvent(new InvoiceItemAddedEvent(
+                Id,
+                name,
+                price,
+                quantity,
+                TotalAmount.Amount));
         }
 
         public void RemoveItem(string name)
@@ -72,6 +89,11 @@ namespace Domain.Entities
             _items.Remove(item);
 
             RecalculateTotal();
+
+            AddDomainEvent(new InvoiceItemRemovedEvent(
+                Id,
+                name,
+                TotalAmount.Amount));
         }
 
         public void RegisterPayment(decimal amount)
@@ -85,6 +107,12 @@ namespace Domain.Entities
             PaidAmount = PaidAmount.Add(new Money(amount));
 
             UpdateStatusAfterPayment();
+
+            AddDomainEvent(new PaymentRegisteredEvent(
+                Id,
+                amount,
+                PaidAmount.Amount,
+                StatusId));
         }
 
         public void Cancel()
@@ -93,6 +121,8 @@ namespace Domain.Entities
                 throw new InvalidOperationException("Paid invoice cannot be cancelled.");
 
             StatusId = InvoiceStatusId.Cancelled;
+
+            AddDomainEvent(new InvoiceCancelledEvent(Id, CustomerId));
         }
 
         public void MarkAsOverdue()
@@ -101,15 +131,15 @@ namespace Domain.Entities
                 DueDate < DateTime.UtcNow)
             {
                 StatusId = InvoiceStatusId.Overdue;
+
+                AddDomainEvent(new InvoiceOverdueEvent(Id, CustomerId, DueDate));
             }
         }
 
         private void RecalculateTotal()
         {
             decimal total = _items.Sum(x => x.Total.Amount);
-
             TotalAmount = new Money(total);
-
             UpdateStatusAfterPayment();
         }
 
