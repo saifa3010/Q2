@@ -22,12 +22,14 @@ namespace Application.Common.DTOs
         Guid Id,
         Guid InvoiceId,
         decimal Amount,
+        string ReferenceNumber,
         PaymentStatusId StatusId,
-        DateTime? CreatedAt);
+        DateTime PaymentDate);
 
     public sealed record UserDto(
         Guid Id,
         string KeycloakUserId,
+        string FullName,
         string Email,
-        string Username);
+        string PhoneNumber);
 }

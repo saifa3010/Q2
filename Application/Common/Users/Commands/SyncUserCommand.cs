@@ -8,7 +8,8 @@ namespace Application.Users.Commands
     public sealed record SyncUserCommand(
         string KeycloakUserId,
         string Email,
-        string Username) : IRequest<UserDto>;
+        string FullName,
+        string PhoneNumber = null) : IRequest<UserDto>;
 
     public sealed class SyncUserCommandHandler
         : IRequestHandler<SyncUserCommand, UserDto>
@@ -37,8 +38,9 @@ namespace Application.Users.Commands
 
             var user = AppUser.Create(
                 request.KeycloakUserId,
+                request.FullName,
                 request.Email,
-                request.Username);
+                request.PhoneNumber);
 
             await _userRepository.AddAsync(user, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

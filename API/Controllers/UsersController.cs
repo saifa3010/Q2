@@ -30,19 +30,23 @@ namespace Api.Controllers
             var keycloakUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
                                  ?? User.FindFirstValue("sub");
 
-            var email    = User.FindFirstValue(ClaimTypes.Email)
-                          ?? User.FindFirstValue("email")
-                          ?? string.Empty;
+            var email = User.FindFirstValue(ClaimTypes.Email)
+                       ?? User.FindFirstValue("email")
+                       ?? string.Empty;
 
-            var username = User.FindFirstValue("preferred_username")
-                          ?? User.FindFirstValue(ClaimTypes.Name)
+            // Keycloak's "name" claim holds the full display name;
+            // fall back to preferred_username if not present.
+            var fullName = User.FindFirstValue("name")
+                          ?? User.FindFirstValue("preferred_username")
                           ?? email;
+
+            var phoneNumber = User.FindFirstValue("phone_number");
 
             if (string.IsNullOrWhiteSpace(keycloakUserId))
                 return Unauthorized("Missing subject claim in token.");
 
             var result = await _sender.Send(
-                new SyncUserCommand(keycloakUserId, email, username),
+                new SyncUserCommand(keycloakUserId, email, fullName, phoneNumber),
                 cancellationToken);
 
             return Ok(result);

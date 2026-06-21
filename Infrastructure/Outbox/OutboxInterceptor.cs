@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Domain.Entities;
 using Domain.Events;
+using Domain.Outbox;
 using Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

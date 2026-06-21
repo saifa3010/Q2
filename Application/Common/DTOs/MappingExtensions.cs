@@ -1,5 +1,4 @@
-﻿using Application.Common.DTOs;
-using Domain.Entities;
+﻿using Domain.Entities;
 
 namespace Application.Common.DTOs
 {
@@ -28,14 +27,16 @@ namespace Application.Common.DTOs
                 payment.Id,
                 payment.InvoiceId,
                 payment.Amount.Amount,
+                payment.ReferenceNumber,
                 payment.StatusId,
-                payment.CreatedAt);
+                payment.PaymentDate);
 
         public static UserDto ToDto(this AppUser user) =>
             new(
                 user.Id,
                 user.KeycloakUserId,
+                user.FullName,
                 user.Email,
-                user.FullName);
+                user.PhoneNumber);
     }
 }

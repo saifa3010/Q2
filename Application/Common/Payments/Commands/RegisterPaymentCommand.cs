@@ -1,7 +1,6 @@
 ﻿using Application.Common.DTOs;
 using Application.Common.Interfaces;
 using Domain.Entities;
-using Domain.Enums;
 using MediatR;
 
 namespace Application.Payments.Commands
@@ -37,7 +36,12 @@ namespace Application.Payments.Commands
             // Domain method updates invoice status and raises PaymentRegisteredEvent.
             invoice.RegisterPayment(request.Amount);
 
-            var payment = Payment.Create(invoice.Id, request.Amount, PaymentStatusId.Completed);
+            // ReferenceNumber is system-generated for now since the POC has no
+            // external payment gateway returning a real transaction reference.
+            var payment = Payment.Create(
+                invoiceId: invoice.Id,
+                amount: request.Amount,
+                referenceNumber: $"PMT-{Guid.NewGuid():N}".ToUpperInvariant());
 
             await _paymentRepository.AddAsync(payment, cancellationToken);
             _invoiceRepository.Update(invoice);

@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Outbox;
 using Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,7 +15,7 @@ namespace Infrastructure.Persistence
         public DbSet<Payment> Payments { get; set; }
         public DbSet<AppUser> Users { get; set; }
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        public AppDbContext(DbContextOptions<AppDbContext> options, Interceptors.OutboxInterceptor outboxInterceptor) : base(options)
         {
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)

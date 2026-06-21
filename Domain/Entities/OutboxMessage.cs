@@ -1,4 +1,6 @@
-namespace Infrastructure.Outbox
+using Domain.Events;
+
+namespace Domain.Outbox
 {
     /// <summary>
     /// Represents a serialized domain event waiting to be dispatched.
