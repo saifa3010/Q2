@@ -10,7 +10,6 @@ namespace Domain.Entities
 			// EF Core
 		}
 
-		public long InvoiceId { get; private set; }
 
 		public Money Amount { get; private set; }
 
@@ -21,8 +20,9 @@ namespace Domain.Entities
 		public string Notes { get; private set; }
 
 		public PaymentStatusId StatusId { get; private set; }
+        public Guid InvoiceId { get; set; }
 
-		public static Payment Create(
+        public static Payment Create(
 			long invoiceId,
 			decimal amount,
 			string referenceNumber,
@@ -39,7 +39,6 @@ namespace Domain.Entities
 
 			return new Payment
 			{
-				InvoiceId = invoiceId,
 				Amount = new Money(amount),
 				PaymentDate = DateTime.UtcNow,
 				ReferenceNumber = referenceNumber,

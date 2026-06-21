@@ -1,8 +1,10 @@
+using Application.Common.Interfaces;
 using Hangfire;
 using Hangfire.SqlServer;
 using Infrastructure.Interceptors;
 using Infrastructure.Outbox;
 using Infrastructure.Persistence;
+using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,8 +32,15 @@ namespace Infrastructure
                 options.AddInterceptors(sp.GetRequiredService<OutboxInterceptor>());
             });
 
+            // ── Repositories ──────────────────────────────────────────────
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            // ── Unit of Work ──────────────────────────────────────────────
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             // ── Hangfire ──────────────────────────────────────────────────
-            // Store Hangfire jobs in the same SQL Server database.
             services.AddHangfire(hangfire => hangfire
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
                 .UseSimpleAssemblyNameTypeSerializer()
@@ -45,10 +54,8 @@ namespace Infrastructure
                     DisableGlobalLocks = true
                 }));
 
-            // Hangfire server processes enqueued/recurring jobs in-process.
             services.AddHangfireServer();
 
-            // OutboxProcessorJob is resolved from DI by Hangfire on each trigger.
             services.AddScoped<OutboxProcessorJob>();
 
             return services;

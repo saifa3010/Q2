@@ -1,9 +1,9 @@
+using API.Middleware;
+using Application;
 using Hangfire;
 using Infrastructure;
 using Infrastructure.Outbox;
-using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// ── Infrastructure (DbContext + Hangfire + Outbox interceptor) ────────────
+// ── Application (MediatR handlers) ───────────────────────────────────────
+builder.Services.AddApplication();
+
+// ── Infrastructure (DbContext + Repositories + UoW + Hangfire) ───────────
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ── Authentication ────────────────────────────────────────────────────────
@@ -30,19 +33,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
+
+// ── Global error handling (must be first middleware) ──────────────────────
+app.UseGlobalExceptionHandler();
 
 // ── OpenAPI ───────────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
-}
 
 // ── Hangfire dashboard ────────────────────────────────────────────────────
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
-    // TODO: replace with an auth filter before going to production
-    Authorization = []
+    Authorization = [] // TODO: add auth filter before production
 });
 
 // ── Recurring jobs ────────────────────────────────────────────────────────
