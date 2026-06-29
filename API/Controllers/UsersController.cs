@@ -7,6 +7,7 @@ using System.Security.Claims;
 
 namespace Api.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("api/users")]
     [Authorize]

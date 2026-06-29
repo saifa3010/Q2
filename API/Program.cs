@@ -3,6 +3,8 @@ using Application;
 using Hangfire;
 using Infrastructure;
 using Infrastructure.Outbox;
+using Infrastructure.Persistence;
+using Infrastructure.Persistence.Seeders;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +24,8 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "POC demonstrating DDD, Outbox Pattern, and Keycloak IDP integration"
     });
+
+    options.EnableAnnotations();
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -85,6 +89,11 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Q2 Invoice API v1");
         options.RoutePrefix = "swagger"; // → https://localhost:44399/swagger
     });
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var seederLogger = scope.ServiceProvider
+       .GetRequiredService<ILogger<Program>>();
+    await DatabaseSeeder.SeedAsync(db, seederLogger);
 }
 
     app.UseHangfireDashboard("/hangfire");
