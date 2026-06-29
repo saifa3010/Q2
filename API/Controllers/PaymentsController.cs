@@ -28,12 +28,12 @@ namespace Api.Controllers
             CancellationToken cancellationToken)
         {
             var result = await _sender.Send(
-                new RegisterPaymentCommand(invoiceId, request.Amount),
+                new RegisterPaymentCommand(invoiceId, request.Amount, request.ReferenceNumber),
                 cancellationToken);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
     }
 
-    public sealed record RegisterPaymentRequest(decimal Amount);
+    public sealed record RegisterPaymentRequest(decimal Amount, string ReferenceNumber);
 }

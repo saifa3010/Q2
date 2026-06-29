@@ -3,9 +3,11 @@ using Application;
 using Hangfire;
 using Infrastructure;
 using Infrastructure.Outbox;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,33 +49,32 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ── Application (MediatR handlers) ───────────────────────────────────────
-builder.Services.AddApplication();
+    // Application
+    builder.Services.AddApplication();
 
-// ── Infrastructure (DbContext + Repositories + UoW + Hangfire) ───────────
-builder.Services.AddInfrastructure(builder.Configuration);
+    // Infrastructure
+    builder.Services.AddInfrastructure(builder.Configuration);
 
-// ── Authentication ────────────────────────────────────────────────────────
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["Keycloak:Authority"];
-        options.Audience = builder.Configuration["Keycloak:Audience"];
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters
+    // Authentication
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true
-        };
-    });
+            options.Authority = builder.Configuration["Keycloak:Authority"];
+            options.Audience = builder.Configuration["Keycloak:Audience"];
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true
+            };
+        });
 
-builder.Services.AddAuthorization();
+    builder.Services.AddAuthorization();
 
-var app = builder.Build();
+    var app = builder.Build();
 
-// ── Global error handling (must be first middleware) ──────────────────────
-app.UseGlobalExceptionHandler();
+    app.UseGlobalExceptionHandler();
 
 // ── Swagger ───────────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
@@ -86,21 +87,16 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// ── Hangfire dashboard ────────────────────────────────────────────────────
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
-    Authorization = [] // TODO: add auth filter before production
-});
+    app.UseHangfireDashboard("/hangfire");
 
-// ── Recurring jobs ────────────────────────────────────────────────────────
-var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
-jobManager.RegisterRecurringJobs();
+    var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+    jobManager.RegisterRecurringJobs();
 
-// ── Middleware pipeline ───────────────────────────────────────────────────
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
+    app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
 
 // Redirect root to Swagger UI so / doesn't 404 during development.
 if (app.Environment.IsDevelopment())

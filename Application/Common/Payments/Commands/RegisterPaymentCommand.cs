@@ -7,7 +7,8 @@ namespace Application.Payments.Commands
 {
     public sealed record RegisterPaymentCommand(
         Guid InvoiceId,
-        decimal Amount) : IRequest<PaymentDto>;
+        decimal Amount,
+        string ReferenceNumber) : IRequest<PaymentDto>;
 
     public sealed class RegisterPaymentCommandHandler
         : IRequestHandler<RegisterPaymentCommand, PaymentDto>

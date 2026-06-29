@@ -21,7 +21,9 @@ namespace Infrastructure.Configurations
                    .IsRequired();
 
             builder.Property(x => x.Notes)
-                   .HasMaxLength(500);
+                   .HasMaxLength(500)
+                   .IsRequired(false);
+
 
             builder.OwnsOne(x => x.Amount, money =>
             {

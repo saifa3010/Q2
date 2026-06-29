@@ -24,7 +24,8 @@ namespace Infrastructure.Configurations
                    .HasMaxLength(200);
 
             builder.Property(x => x.PhoneNumber)
-                   .HasMaxLength(30);
+                   .HasMaxLength(30)
+                   .IsRequired(false);
 
             builder.Property(x => x.CreatedAt)
                    .IsRequired();
