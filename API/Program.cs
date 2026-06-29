@@ -5,15 +5,13 @@ using Infrastructure;
 using Infrastructure.Outbox;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Seeders;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
+using Swashbuckle.AspNetCore.Annotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Controllers & Swagger ──────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -53,61 +51,54 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-    // Application
-    builder.Services.AddApplication();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
-    // Infrastructure
-    builder.Services.AddInfrastructure(builder.Configuration);
-
-    // Authentication
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Keycloak:Authority"];
+        options.Audience = builder.Configuration["Keycloak:Audience"];
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            options.Authority = builder.Configuration["Keycloak:Authority"];
-            options.Audience = builder.Configuration["Keycloak:Audience"];
-            options.RequireHttpsMetadata = false;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true
-            };
-        });
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true
+        };
+    });
 
-    builder.Services.AddAuthorization();
+builder.Services.AddAuthorization();
 
-    var app = builder.Build();
+var app = builder.Build();
 
-    app.UseGlobalExceptionHandler();
+app.UseGlobalExceptionHandler();
 
-// ── Swagger ───────────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Q2 Invoice API v1");
-        options.RoutePrefix = "swagger"; // → https://localhost:44399/swagger
+        options.RoutePrefix = "swagger";
     });
+
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var seederLogger = scope.ServiceProvider
-       .GetRequiredService<ILogger<Program>>();
+    var seederLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     await DatabaseSeeder.SeedAsync(db, seederLogger);
 }
 
-    app.UseHangfireDashboard("/hangfire");
+app.UseHangfireDashboard("/hangfire");
 
-    var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
-    jobManager.RegisterRecurringJobs();
+var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+jobManager.RegisterRecurringJobs();
 
-    app.UseHttpsRedirection();
-    app.UseAuthentication();
-    app.UseAuthorization();
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
-    app.MapControllers();
-
-// Redirect root to Swagger UI so / doesn't 404 during development.
 if (app.Environment.IsDevelopment())
     app.MapGet("/", () => Results.Redirect("/swagger"));
 
