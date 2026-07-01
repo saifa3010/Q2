@@ -7,7 +7,7 @@ namespace Domain.Entities
     {
         private Payment()
         {
-            // EF Core
+            
         }
 
         public Money Amount { get; private set; }
@@ -22,11 +22,7 @@ namespace Domain.Entities
 
         public Guid InvoiceId { get; private set; }
 
-        public static Payment Create(
-            Guid invoiceId,
-            decimal amount,
-            string referenceNumber,
-            string notes = null)
+        public static Payment Create(Guid invoiceId,decimal amount, string referenceNumber, string notes = null)
         {
             if (invoiceId == Guid.Empty)
                 throw new ArgumentException("Invalid invoice.");

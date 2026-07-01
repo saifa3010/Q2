@@ -10,8 +10,9 @@ namespace Domain.Entities
 
         private Invoice()
         {
-            // EF Core
+
         }
+
 
         public long CustomerId { get; private set; }
 
@@ -25,9 +26,7 @@ namespace Domain.Entities
 
         public InvoiceStatusId StatusId { get; private set; }
 
-        public static Invoice Create(
-            int customerId,
-            DateTime dueDate)
+        public static Invoice Create(int customerId, DateTime dueDate)
         {
             if (customerId <= 0)
                 throw new ArgumentException("Invalid customer.");
@@ -46,10 +45,7 @@ namespace Domain.Entities
                 CreatedAt = DateTime.UtcNow
             };
 
-            invoice.AddDomainEvent(new InvoiceCreatedEvent(
-                invoice.Id,
-                invoice.CustomerId,
-                invoice.DueDate));
+            invoice.AddDomainEvent(new InvoiceCreatedEvent(invoice.Id, invoice.CustomerId,invoice.DueDate));
 
             return invoice;
         }
@@ -59,21 +55,13 @@ namespace Domain.Entities
             if (StatusId == InvoiceStatusId.Paid)
                 throw new InvalidOperationException("Cannot modify a paid invoice.");
 
-            var item = new InvoiceItem(
-                name,
-                new Money(price),
-                quantity);
+            var item = new InvoiceItem(name, new Money(price), quantity);
 
             _items.Add(item);
 
             RecalculateTotal();
 
-            AddDomainEvent(new InvoiceItemAddedEvent(
-                Id,
-                name,
-                price,
-                quantity,
-                TotalAmount.Amount));
+            AddDomainEvent(new InvoiceItemAddedEvent(Id, name, price, quantity, TotalAmount.Amount));
         }
 
         public void RemoveItem(string name)
@@ -90,10 +78,7 @@ namespace Domain.Entities
 
             RecalculateTotal();
 
-            AddDomainEvent(new InvoiceItemRemovedEvent(
-                Id,
-                name,
-                TotalAmount.Amount));
+            AddDomainEvent(new InvoiceItemRemovedEvent(Id, name, TotalAmount.Amount));
         }
 
         public void RegisterPayment(decimal amount)
@@ -108,11 +93,7 @@ namespace Domain.Entities
 
             UpdateStatusAfterPayment();
 
-            AddDomainEvent(new PaymentRegisteredEvent(
-                Id,
-                amount,
-                PaidAmount.Amount,
-                StatusId));
+            AddDomainEvent(new PaymentRegisteredEvent(Id, amount, PaidAmount.Amount, StatusId));
         }
 
         public void Cancel()

@@ -2,16 +2,13 @@
 
 public class InvoiceItem
 {
-    private InvoiceItem() { } // EF
+    private InvoiceItem() { }
 
     public string Name { get; private set; }
     public Money Price { get; private set; }
     public int Quantity { get; private set; }
 
-    public InvoiceItem(
-    string name,
-    Money price,
-    int quantity)
+    public InvoiceItem(string name, Money price, int quantity)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name is required.");

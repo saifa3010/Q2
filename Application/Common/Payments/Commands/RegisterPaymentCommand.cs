@@ -5,31 +5,22 @@ using MediatR;
 
 namespace Application.Payments.Commands
 {
-    public sealed record RegisterPaymentCommand(
-        Guid InvoiceId,
-        decimal Amount,
-        string ReferenceNumber) : IRequest<PaymentDto>;
+    public sealed record RegisterPaymentCommand(Guid InvoiceId, decimal Amount, string ReferenceNumber) : IRequest<PaymentDto>;
 
-    public sealed class RegisterPaymentCommandHandler
-        : IRequestHandler<RegisterPaymentCommand, PaymentDto>
+    public sealed class RegisterPaymentCommandHandler : IRequestHandler<RegisterPaymentCommand, PaymentDto>
     {
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public RegisterPaymentCommandHandler(
-            IInvoiceRepository invoiceRepository,
-            IPaymentRepository paymentRepository,
-            IUnitOfWork unitOfWork)
+        public RegisterPaymentCommandHandler(IInvoiceRepository invoiceRepository, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork)
         {
             _invoiceRepository = invoiceRepository;
             _paymentRepository = paymentRepository;
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<PaymentDto> Handle(
-            RegisterPaymentCommand request,
-            CancellationToken cancellationToken)
+        public async Task<PaymentDto> Handle(RegisterPaymentCommand request,CancellationToken cancellationToken)
         {
             var invoice = await _invoiceRepository.GetByIdAsync(request.InvoiceId, cancellationToken)
                 ?? throw new KeyNotFoundException($"Invoice {request.InvoiceId} not found.");

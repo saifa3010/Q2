@@ -6,7 +6,7 @@ namespace Domain.ValueObjects
 {
     public class Money
     {
-        private Money() { } // EF
+        private Money() { }
         public decimal Amount { get; }
 
         public Money(decimal amount)
