@@ -15,8 +15,10 @@ namespace Application.Common.DTOs
         decimal TotalAmount,
         decimal PaidAmount,
         InvoiceStatusId StatusId,
+        string StatusName,
         IReadOnlyList<InvoiceItemDto> Items,
         DateTime? CreatedAt);
+    public sealed record InvoiceStatusDto(int Id, string Name);
 
     public sealed record PaymentDto(
         Guid Id,
@@ -24,8 +26,9 @@ namespace Application.Common.DTOs
         decimal Amount,
         string ReferenceNumber,
         PaymentStatusId StatusId,
+        string StatusName,
         DateTime PaymentDate);
-
+    public sealed record PaymentStatusDto(int Id, string Name);
     public sealed record UserDto(
         Guid Id,
         string KeycloakUserId,

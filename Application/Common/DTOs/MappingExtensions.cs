@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 
 namespace Application.Common.DTOs
 {
@@ -12,6 +13,7 @@ namespace Application.Common.DTOs
                 invoice.TotalAmount.Amount,
                 invoice.PaidAmount.Amount,
                 invoice.StatusId,
+                invoice.StatusId.GetDisplayName(),
                 invoice.Items.Select(i => i.ToDto()).ToList(),
                 invoice.CreatedAt);
 
@@ -29,6 +31,7 @@ namespace Application.Common.DTOs
                 payment.Amount.Amount,
                 payment.ReferenceNumber,
                 payment.StatusId,
+                payment.StatusId.GetDisplayName(),
                 payment.PaymentDate);
 
         public static UserDto ToDto(this AppUser user) =>

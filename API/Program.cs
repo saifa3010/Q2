@@ -6,6 +6,7 @@ using Infrastructure.Outbox;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Seeders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Annotations;
@@ -71,7 +72,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var feature = context.Features.Get<IExceptionHandlerFeature>();
+        if (feature?.Error is not null)
+        {
+            // temporarily log full details while debugging
+            Console.WriteLine(feature.Error.ToString());
+        }
+        // ... existing ProblemDetails response
+    });
+});
 app.UseGlobalExceptionHandler();
 
 if (app.Environment.IsDevelopment())

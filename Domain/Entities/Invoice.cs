@@ -45,7 +45,7 @@ namespace Domain.Entities
                 CreatedAt = DateTime.UtcNow
             };
 
-            invoice.AddDomainEvent(new InvoiceCreatedEvent(invoice.Id, invoice.CustomerId,invoice.DueDate));
+            invoice.AddDomainEvent(new InvoiceCreatedEvent(invoice.Id, invoice.CustomerId, invoice.DueDate));
 
             return invoice;
         }

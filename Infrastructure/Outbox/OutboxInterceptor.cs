@@ -8,11 +8,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Infrastructure.Interceptors
 {
-    /// <summary>
-    /// Intercepts SaveChanges to harvest domain events from all tracked aggregates,
-    /// serialize them as OutboxMessage rows, and insert them in the same transaction.
-    /// After saving, clears the in-memory event collections.
-    /// </summary>
     public sealed class OutboxInterceptor : SaveChangesInterceptor
     {
         private static readonly JsonSerializerOptions _serializerOptions = new()
@@ -20,10 +15,7 @@ namespace Infrastructure.Interceptors
             WriteIndented = false
         };
 
-        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
-            DbContextEventData eventData,
-            InterceptionResult<int> result,
-            CancellationToken cancellationToken = default)
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
         {
             if (eventData.Context is null)
                 return base.SavingChangesAsync(eventData, result, cancellationToken);
@@ -33,9 +25,7 @@ namespace Infrastructure.Interceptors
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
-        public override InterceptionResult<int> SavingChanges(
-            DbContextEventData eventData,
-            InterceptionResult<int> result)
+        public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
         {
             if (eventData.Context is null)
                 return base.SavingChanges(eventData, result);
@@ -45,10 +35,7 @@ namespace Infrastructure.Interceptors
             return base.SavingChanges(eventData, result);
         }
 
-        public override async ValueTask<int> SavedChangesAsync(
-            SaveChangesCompletedEventData eventData,
-            int result,
-            CancellationToken cancellationToken = default)
+        public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
         {
             if (eventData.Context is not null)
                 ClearAllDomainEvents(eventData.Context);
@@ -56,9 +43,7 @@ namespace Infrastructure.Interceptors
             return await base.SavedChangesAsync(eventData, result, cancellationToken);
         }
 
-        public override int SavedChanges(
-            SaveChangesCompletedEventData eventData,
-            int result)
+        public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
         {
             if (eventData.Context is not null)
                 ClearAllDomainEvents(eventData.Context);
@@ -83,8 +68,6 @@ namespace Infrastructure.Interceptors
 
         private static OutboxMessage ToOutboxMessage(IDomainEvent domainEvent)
         {
-            // Store the fully-qualified type name so the processor can
-            // deserialize back to the concrete event type at runtime.
             var type = domainEvent.GetType().AssemblyQualifiedName
                        ?? domainEvent.GetType().FullName
                        ?? domainEvent.GetType().Name;
