@@ -7,12 +7,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Outbox
 {
-    /// <summary>
-    /// Hangfire recurring job that polls the OutboxMessages table for unprocessed
-    /// messages, deserializes each to its concrete IDomainEvent type, and
-    /// publishes it via MediatR. Scheduled every 10 seconds via Hangfire's
-    /// CRON support. Hangfire handles retries, persistence, and the dashboard.
-    /// </summary>
     public sealed class OutboxProcessorJob
     {
         private readonly AppDbContext _dbContext;
@@ -31,10 +25,6 @@ namespace Infrastructure.Outbox
             _logger = logger;
         }
 
-        /// <summary>
-        /// Entry point invoked by Hangfire on each scheduled trigger.
-        /// Hangfire resolves this class from DI, so all dependencies are scoped correctly.
-        /// </summary>
         public async Task ProcessAsync()
         {
             var messages = await _dbContext.OutboxMessages
