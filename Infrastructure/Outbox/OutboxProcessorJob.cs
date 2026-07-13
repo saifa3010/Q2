@@ -15,10 +15,7 @@ namespace Infrastructure.Outbox
 
         private const int _batchSize = 20;
 
-        public OutboxProcessorJob(
-            AppDbContext dbContext,
-            IPublisher publisher,
-            ILogger<OutboxProcessorJob> logger)
+        public OutboxProcessorJob(AppDbContext dbContext, IPublisher publisher, ILogger<OutboxProcessorJob> logger)
         {
             _dbContext = dbContext;
             _publisher = publisher;

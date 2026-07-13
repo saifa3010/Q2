@@ -25,11 +25,8 @@ namespace Application.Payments.Commands
             var invoice = await _invoiceRepository.GetByIdAsync(request.InvoiceId, cancellationToken)
                 ?? throw new KeyNotFoundException($"Invoice {request.InvoiceId} not found.");
 
-            // Domain method updates invoice status and raises PaymentRegisteredEvent.
             invoice.RegisterPayment(request.Amount);
 
-            // ReferenceNumber is system-generated for now since the POC has no
-            // external payment gateway returning a real transaction reference.
             var payment = Payment.Create(
                 invoiceId: invoice.Id,
                 amount: request.Amount,

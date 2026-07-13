@@ -41,18 +41,18 @@ namespace Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // ── Hangfire ──────────────────────────────────────────────────
-            services.AddHangfire(hangfire => hangfire
-                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
-                {
-                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                    QueuePollInterval = TimeSpan.Zero,
-                    UseRecommendedIsolationLevel = true,
-                    DisableGlobalLocks = true
-                }));
+            services.AddHangfire(config => config
+             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+             .UseSimpleAssemblyNameTypeSerializer()
+             .UseRecommendedSerializerSettings()
+             .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+             {
+                 CommandBatchMaxTimeout = null,   // <-- disables SqlCommandSet batching, avoids the reflection bug
+                 SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                 QueuePollInterval = TimeSpan.Zero,
+                 UseRecommendedIsolationLevel = true,
+                 DisableGlobalLocks = true
+             }));
 
             services.AddHangfireServer();
 
