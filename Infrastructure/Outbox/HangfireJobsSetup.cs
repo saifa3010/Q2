@@ -16,9 +16,9 @@ namespace Infrastructure.Outbox
         public static void RegisterRecurringJobs(this IRecurringJobManager manager)
         {
             manager.AddOrUpdate<OutboxProcessorJob>(
-                recurringJobId: "outbox-processor",
+                recurringJobId: "outbox-Job",
                 methodCall: job => job.ProcessAsync(),
-                cronExpression: "*/1 * * * *", // every minute — change to Cron.MinuteInterval(1) or custom
+                cronExpression: "*/1 * * * *",
                 options: new RecurringJobOptions
                 {
                     TimeZone = TimeZoneInfo.Utc
